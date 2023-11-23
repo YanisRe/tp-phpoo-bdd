@@ -1,3 +1,3 @@
 YanisRe = Yanis RETTAB
-Nakavasi = Maxence MANGERET
+Nakavasi = Maxance MANGERET
 Satosakisato = Radu BARDI
