@@ -1,5 +1,19 @@
 <?php
-
+include "config.php";
+try {
+    //Informations pour se connecter a la base de donnée
+    $hote = $DB_HOST;
+    $utilisateur = $DB_USER;
+    $motDePasse = $DB_MDP;
+    $nomDeLaBase = $DB_NomBase;
+    //Tentative de connection a la base de donnees
+    $connexion = new PDO("mysql:host=$hote;dbname=$nomDeLaBase", $utilisateur, $motDePasse);
+    $connexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    // Si il y a une erreur de connexion, affiche le message d'erreur et arrete le script
+    echo "Erreur de connexion à la base de données: " . $e->getMessage();
+    die();
+}
 class Personnage{
     //On met en private pour raison de sécuriter
     private $nom;
@@ -113,8 +127,8 @@ class SalleSpéciale extends Salle{
     }
     
     public function EntréeEnSalle() {
-        echo"Vous entrez dans la salle.\n";
-        echo"Vous regardez autour de vous et vous voyez :\n";
+        apparaitreprogressivement("Vous entrez dans la salle.\n",30000);
+        apparaitreprogressivement("Vous regardez autour de vous :\n",30000);
         $random = rand(1,100);
         if ($random<=5){
             $this->piege = true;
@@ -129,46 +143,46 @@ class SalleSpéciale extends Salle{
             $this->monstre = true;
         }
         else {
-            echo"rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n";
+            apparaitreprogressivement("rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n",30000);
         }
     }
 
     public function EnSalle(){
         if ($this->monstre == true){
-            echo"Vous tombez face à un monstre dans la salle !\n";
-            echo"Un monstre spécial est invoqué !\n";
+            apparaitreprogressivement("Vous tombez face à un monstre dans la salle !\n",30000);
+            apparaitreprogressivement("Un monstre spécial est invoqué !\n",30000);
             $this->monstre = true;
         }
         elseif ($this->piege == true){
-            echo"Vous tombez dans un piège !\n";
-            echo"Vous perdez ", $this->degatspieges, "points de vie !\n";
+            apparaitreprogressivement("Vous tombez dans un piège !\n",30000);
+            apparaitreprogressivement("Vous perdez ". $this->degatspieges. " points de vie !\n", 30000);
             $this->piege = false;
         }
         elseif ($this->enigme == true){
-            echo"Vous tombez sur une énigme !\n";
-            echo"Vous devez résoudre l'énigme pour continuer votre chemin !\n";
+            apparaitreprogressivement("Vous tombez sur une énigme !\n",30000);
+            apparaitreprogressivement("Vous devez résoudre l'énigme pour continuer votre chemin !\n",30000);
             $this->enigme = false;
         }
         elseif ($this->marchand == true){
-            echo"Vous tombez sur un marchand !\n";
+            apparaitreprogressivement("Vous tombez sur un marchand !\n", 30000);
             $itemRandom = rand(1,3);
             $choixmarchand = readline("Le marchand vend :\n1.".$itemRandom."\n2.".$itemRandom. "\n". "3.". $itemRandom. "\n");
             if ($choixmarchand == 1){
-                echo"Vous achetez l'item 1 !\n";
+                apparaitreprogressivement("Vous achetez l'item 1 !\n",30000);
             }
             elseif ($choixmarchand == 2){
-                echo"Vous achetez l'item 2 !\n";
+                apparaitreprogressivement("Vous achetez l'item 2 !\n",30000);
             }
             elseif ($choixmarchand == 3){
-                echo"Vous achetez l'item 3 !\n";
+                apparaitreprogressivement("Vous achetez l'item 3 !\n",30000);
             }
             else {
-                echo"Vous n'achetez rien !\n";
+                apparaitreprogressivement("Vous avez décidé de ne rien acheter au marchand\n",30000);
             }
             $this->marchand = false;
         }
         else {
-            echo"rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n";
+            apparaitreprogressivement("rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n",30000);
         }
 
     }
@@ -176,9 +190,8 @@ class SalleSpéciale extends Salle{
 
 }
 
-
 class monstre {
-    //On met en private pour raison de sécuriter
+    //On met en private pour raison de sécurité
     protected $nom;
     protected $PV;
     protected $PA;
@@ -254,33 +267,76 @@ class Objects{
         return $this->statistique;
     }
 }
+function apparaitreprogressivement($texte,$temps){
+    for ($i = 0; $i < strlen($texte); $i++) {
+        echo $texte[$i];
+        usleep($temps);
+    }
+}
+
+function combat($Personnage,$Ennemie){
+    
+}
+
 //lancement du jeu
+popen('cls','w');
+apparaitreprogressivement("Bienvenue à toi jeune aventurier !", 5);
+sleep(2);
 while(true){
     popen('cls','w');
-    echo("Bienvenue a toi jeune aventurier!");
-    sleep(3);
-    popen('cls','w');
-    echo("Que shouaitez vous faire:\n1-Continuer\n2-Nouvel partie\n3-Quitter\n");
+    apparaitreprogressivement("Que souhaitez-vous faire:\n",30000);
+    apparaitreprogressivement("1-Continuer\n2-Nouvelle partie\n3-Quitter\n",10000);
     $choix=readline("Choix: ");
     popen('cls','w');
     if($choix==1){
-        echo("Voici les sauvegarde: \n");
-        echo("Sauvegarde 1:\n");
-        echo("Sauvegarde 2:\n");
-        echo("Sauvegarde 3:\n");
-        sleep(3);
+        apparaitreprogressivement("Voici les sauvegardes: \n",30000);
+        apparaitreprogressivement("Sauvegarde 1:\n",10000);
+        apparaitreprogressivement("Sauvegarde 2:\n",10000);
+        apparaitreprogressivement("Sauvegarde 3:\n",10000);
+        apparaitreprogressivement("Choix :\n",10000);
+        $choix=readline("");
+        if($choix==1){
+            $requete = $bdd->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
+            $requete->execute([$choix]);
+            $Personnage= $requete->fetch();
+            $requete = $bdd->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
+            $requete->execute([$choix]);
+            $arme= $requete->fetch();
+            
+        }
+        else if($choix==2){
+
+        }
+        else if($choix==3){
+
+        }
+        else{
+            apparaitreprogressivement("Je n'ai pas compris votre demande \n",30000);
+            sleep(2);
+        }
+
+        
     }
-    if($choix==2){
-        echo("Lancement d'une nouvel partie: \n");
-        sleep(3);
+    else if($choix==2){
+        apparaitreprogressivement("Lancement d'une nouvelle partie: \n",30000);
+        sleep(2);
+        popen('cls','w');
+        apparaitreprogressivement("Quel est votre nom ? : ",30000);
+        $nom= readline("");
+        popen('cls','w');
+        $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
+        apparaitreprogressivement("Bienvenue alors au donjon ".$nom." fais attention beaucoup sont morts dedans.",30000);
+        sleep(2);
     }
-    if($choix==3){
-        echo("Aurevoir jeune aventurier.: \n");
-        sleep(3);
+    else if($choix==3){
+        apparaitreprogressivement("Au revoir jeune aventurier. \n",30000);
+        sleep(2);
+        popen('cls','w');
+        die();
     }
     else{
-        echo("Voici les sauvegarde: \n");
-        sleep(3);
+        apparaitreprogressivement("Je n'ai pas compris votre demande \n",30000);
+        sleep(2);
     }
 }
 ?>
