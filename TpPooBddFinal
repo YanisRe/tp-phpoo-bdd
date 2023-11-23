@@ -15,7 +15,7 @@ try {
     die();
 }
 class Personnage{
-    //On met en private pour raison de sécuriter
+    //On met en priver pour des raisons de sécurité
     private $nom;
     private $PV;
     private $PA;
@@ -289,33 +289,57 @@ while(true){
     $choix=readline("Choix: ");
     popen('cls','w');
     if($choix==1){
+        $requete = $connexion->query("SELECT * FROM Sauvegarde");
+        $Personnage= $requete->fetchall();
         apparaitreprogressivement("Voici les sauvegardes: \n",30000);
-        apparaitreprogressivement("Sauvegarde 1:\n",10000);
-        apparaitreprogressivement("Sauvegarde 2:\n",10000);
-        apparaitreprogressivement("Sauvegarde 3:\n",10000);
-        apparaitreprogressivement("Choix :\n",10000);
+        foreach($Personnage as $Chargement){
+            print_r($Chargement);
+            if($Chargement[nom]=""){
+                apparaitreprogressivement("Sauvegarde ".$Personnage["ID"].": Vide\n",10000);
+            }
+            else{
+                apparaitreprogressivement("Sauvegarde ".$Personnage["ID"].": ".$Personnage["nom"]."\n",10000);
+            }
+        }   
         $choix=readline("");
+        popen('cls','w');
         if($choix==1){
-            $requete = $bdd->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
+            $requete = $connexion->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
             $requete->execute([$choix]);
             $Personnage= $requete->fetch();
-            $requete = $bdd->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
+            $requete = $connexion->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
             $requete->execute([$choix]);
             $arme= $requete->fetch();
             
+            while (true){
+                if($Personnage==NULL){
+                    apparaitreprogressivement("Sauvegarde vide.\n",10000);
+                    sleep(2);
+                    break;
+                }
+            }
+
         }
         else if($choix==2){
-
+            $requete = $connexion->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
+            $requete->execute([$choix]);
+            $Personnage= $requete->fetch();
+            $requete = $connexion->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
+            $requete->execute([$choix]);
+            $arme= $requete->fetch();
         }
         else if($choix==3){
-
+            $requete = $connexion->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
+            $requete->execute([$choix]);
+            $Personnage= $requete->fetch();
+            $requete = $connexion->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
+            $requete->execute([$choix]);
+            $arme= $requete->fetch();
         }
         else{
             apparaitreprogressivement("Je n'ai pas compris votre demande \n",30000);
             sleep(2);
-        }
-
-        
+        }        
     }
     else if($choix==2){
         apparaitreprogressivement("Lancement d'une nouvelle partie: \n",30000);
@@ -329,7 +353,7 @@ while(true){
         sleep(2);
     }
     else if($choix==3){
-        apparaitreprogressivement("Au revoir jeune aventurier. \n",30000);
+        apparaitreprogressivement("Au revoir jeune aventurier, on espère vous revoir bientôt !\n",30000);
         sleep(2);
         popen('cls','w');
         die();
