@@ -18,6 +18,7 @@ class Personnage{
     //On met en priver pour des raisons de sécurité
     private $nom;
     private $PV;
+    private $PVMax;
     private $PA;
     private $PD;
     private $level=1;
@@ -28,6 +29,7 @@ class Personnage{
     public function __construct($n,$pv,$pa,$pd,$c,$a){
         $this->nom = $n;
         $this->PV= $pv;
+        $this->PVMax= $pv;
         $this->PA= $pa;
         $this->PD= $pd;
         $this->competence= $c;
@@ -40,6 +42,9 @@ class Personnage{
 
     public function getPV(){
         return $this->PV;
+    }
+    public function getPVMax(){
+        return $this->PVMax;
     }
 
     public function getPA(){
@@ -125,6 +130,10 @@ class SalleSpéciale extends Salle{
     public function getsallesuivate(){
         return $this->sallesuivante;
     }
+
+    public function Combat(){
+        
+    }
     
     public function EntréeEnSalle() {
         apparaitreprogressivement("Vous entrez dans la salle.\n",30000);
@@ -194,21 +203,23 @@ class monstre {
     //On met en private pour raison de sécurité
     protected $nom;
     protected $PV;
+    protected $PVMax;
     protected $PA;
     protected $PD;
     protected $XPgagner;
     protected $drop;
     
     //On crée le constructeur
-    protected function __construct($n,$pv,$pa,$pd,$xp,$d){
+    public function __construct($n,$pv,$pa,$pd,$xp,$d){
         $this->nom = $n;
         $this->PV= $pv;
+        $this->PVMax= $pv;
         $this->PA= $pa;
         $this->PD= $pd;
         $this->XPgagner= $xp;
         $this->drop=$d;
     }
-
+    
 }
 
 class MonstreSpécial extends Monstre {
@@ -227,6 +238,9 @@ class MonstreSpécial extends Monstre {
 
     public function getPV(){
         return $this->PV;
+    }
+    public function getPVMax(){
+        return $this->PVMax;
     }
     
     public function getPA(){
@@ -274,34 +288,88 @@ function apparaitreprogressivement($texte,$temps){
     }
 }
 
-function combat($Personnage,$Ennemie){
+function attaquerMonstre($monstre, $personnage) {
+    $degat=$monstre->getPA();
+    $defence=$personnage["PD"];
+    $personnage["PV"]= $personnage["PV"]- ($degat/$defence%10);
+    apparaitreprogressivement($monstre->getnom()." vous attaque et vous subbisez ".($degat/$defence%10)." de dégats.\n",30000);
+    sleep(2);
+}
+function attaquerPersonnage($Personnage, $monstre) {
+    $degat=$Personnage["PA"];
+    $defence=$monstre->getPD();
+    $personnage["PV"]= $monstre->get - ($degat/$defence%10);
+    apparaitreprogressivement($monstre->getnom()." vous attaque et vous subbisez ".($degat/$defence%10)." de dégats.\n",30000);
+    sleep(2);
+}
+
+function afficherStatsmonstre($monstre){
+    apparaitreprogressivement("Voici les statistique de :". $monstre->getnom() ."\n",30000);
+    apparaitreprogressivement("PV :". $monstre->getPV() ."/". $monstre->getPVMax() ."\n",30000);
+    apparaitreprogressivement("Attaque :". $monstre->getPA() ."\n",30000);
+    apparaitreprogressivement("Defence :". $monstre->getPD() ."\n",30000);
+}
+
+function afficherStatsPersonnage($Personnage){
+    apparaitreprogressivement("Voici les statistique de :". $Personnage["nom"] ."\n",30000);
+    apparaitreprogressivement("PV :". $Personnage["PV"] ."/". $Personnage["PVMax"] ."\n",30000);
+    apparaitreprogressivement("Attaque :". $Personnage["PA"] ."\n",30000);
+    apparaitreprogressivement("Defence :". $Personnage["PD"] ."\n",30000);
+}
+
+function combat($Personnage, $Ennemie){
+    apparaitreprogressivement("Vous entrez en combat.\n", 30000);
+    apparaitreprogressivement("Que souhaitez-vous faire ?\n", 30000);
+    apparaitreprogressivement("1-Attaquer\n", 30000);
+    apparaitreprogressivement("2-Se défendre\n", 30000);
+    while($choix != 1 && $choix != 2){
+    $choix = readline();
+    
+        if ($choix == 1) {
+            attaquerMonstre($Personnage, $Ennemie);
+            apparaitreprogressivement("Vous attaquez !\n", 30000);
+        }
+    
+        elseif ($choix == 2) {
+            $Personnage->setPD($Personnage->getPD() + 5);
+            apparaitreprogressivement("Vous vous défendez !\n", 30000);
+        }
+    
+        else {
+            apparaitreprogressivement("Je n'ai pas compris votre demande\n", 30000);
+        }
+    }
     
 }
 
+$Ennemies=[new monstre("squelette", 90, 5, 15, 20,[]), new monstre("zombie", 120, 15, 8, 25,[]), new monstre("gobelin", 70, 30, 10, 50,[]), new monstre("orc", 160, 50, 20, 100,[]), new monstre("démon", 200, 60, 30, 300,[])];
+$Enemiesspeciaux=[new MonstreSpécial("Mimic",250,25,50,2500,["épée en obsidienne a deux main",50,20],"langue",["Glouton",1.5]), new MonstreSpécial("Dragon",500,100,100,5000,["Espadon des dieux",90,18],"Lance flamme",["Souffle de feu",2]), new MonstreSpécial("Golem",1000,200,200,10000,["Marteau de guerre",150,30],"Poing de pierre",["Poing de pierre",3])];
+// $Ennemie[random_int(0,count($Ennemie)-1)];
 //lancement du jeu
 popen('cls','w');
-apparaitreprogressivement("Bienvenue à toi jeune aventurier !", 5);
+apparaitreprogressivement("Bienvenue à toi jeune aventurier !", 30000);
 sleep(2);
 while(true){
     popen('cls','w');
     apparaitreprogressivement("Que souhaitez-vous faire:\n",30000);
     apparaitreprogressivement("1-Continuer\n2-Nouvelle partie\n3-Quitter\n",10000);
-    $choix=readline("Choix: ");
+    apparaitreprogressivement("Choix:",10000);
+    $choix=readline();
     popen('cls','w');
     if($choix==1){
         $requete = $connexion->query("SELECT * FROM Sauvegarde");
         $Personnage= $requete->fetchall();
         apparaitreprogressivement("Voici les sauvegardes: \n",30000);
         foreach($Personnage as $Chargement){
-            print_r($Chargement);
-            if($Chargement[nom]=""){
-                apparaitreprogressivement("Sauvegarde ".$Personnage["ID"].": Vide\n",10000);
+            if($Chargement["nom"]==NULL){
+                apparaitreprogressivement("Sauvegarde ".$Chargement["ID"].": Vide\n",10000);
             }
             else{
-                apparaitreprogressivement("Sauvegarde ".$Personnage["ID"].": ".$Personnage["nom"]."\n",10000);
+                apparaitreprogressivement("Sauvegarde ".$Chargement["ID"].": ".$Chargement["nom"]."\n",10000);
             }
-        }   
-        $choix=readline("");
+        }
+        apparaitreprogressivement("Choix:",10000);
+        $choix=readline();
         popen('cls','w');
         if($choix==1){
             $requete = $connexion->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
@@ -312,10 +380,16 @@ while(true){
             $arme= $requete->fetch();
             
             while (true){
-                if($Personnage==NULL){
+                if($Personnage["nom"]==NULL){
+                    //on vérifie si la sauvegarde est vide
                     apparaitreprogressivement("Sauvegarde vide.\n",10000);
                     sleep(2);
                     break;
+                }
+                else{
+                    // Sélection aléatoire d'un monstre à affronter
+                    $monstre = $Ennemies[array_rand($Ennemies)]; 
+                    combat($Personnage, $monstre);
                 }
             }
 
@@ -327,6 +401,13 @@ while(true){
             $requete = $connexion->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
             $requete->execute([$choix]);
             $arme= $requete->fetch();
+            while (true){
+                if($Personnage["nom"]==NULL){
+                    apparaitreprogressivement("Sauvegarde vide.\n",10000);
+                    sleep(2);
+                    break;
+                }
+            }
         }
         else if($choix==3){
             $requete = $connexion->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
@@ -335,6 +416,13 @@ while(true){
             $requete = $connexion->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
             $requete->execute([$choix]);
             $arme= $requete->fetch();
+            while (true){
+                if($Personnage["nom"]==NULL){
+                    apparaitreprogressivement("Sauvegarde vide.\n",10000);
+                    sleep(2);
+                    break;
+                }
+            }
         }
         else{
             apparaitreprogressivement("Je n'ai pas compris votre demande \n",30000);
@@ -342,18 +430,61 @@ while(true){
         }        
     }
     else if($choix==2){
-        apparaitreprogressivement("Lancement d'une nouvelle partie: \n",30000);
-        sleep(2);
+        $requete = $connexion->query("SELECT * FROM Sauvegarde");
+        $Personnage= $requete->fetchall();
+        apparaitreprogressivement("Choissisez la sauvegarde:\n",30000);
+        foreach($Personnage as $Chargement){
+            if($Chargement["nom"]==NULL){
+                apparaitreprogressivement("Sauvegarde ".$Chargement["ID"].": Vide\n",10000);
+            }
+            else{
+                apparaitreprogressivement("Sauvegarde ".$Chargement["ID"].": ".$Chargement["nom"]."\n",10000);
+            }
+        }
+        apparaitreprogressivement("Choix :",30000);
+        $choixsauvegarde=readline();
         popen('cls','w');
-        apparaitreprogressivement("Quel est votre nom ? : ",30000);
-        $nom= readline("");
-        popen('cls','w');
-        $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
-        apparaitreprogressivement("Bienvenue alors au donjon ".$nom." fais attention beaucoup sont morts dedans.",30000);
-        sleep(2);
+        if ($choixsauvegarde==1){
+            apparaitreprogressivement("Lancement d'une nouvelle partie sur la sauvegarde 1. \n",30000);
+            sleep(2);
+            popen('cls','w');
+            apparaitreprogressivement("Quel nom souhaitez-vous donner à votre personnage: ",30000);
+            $nom= readline("");
+            popen('cls','w');
+            $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
+            apparaitreprogressivement("Bienvenue alors au donjon, ".$nom." fais attention beaucoup sont morts dedans !",30000);
+            sleep(2);
+        }
+        else if ($choixsauvegarde==2){
+            apparaitreprogressivement("Lancement d'une nouvelle partie sur la sauvegarde 2. \n",30000);
+            sleep(2);
+            popen('cls','w');
+            apparaitreprogressivement("Quel nom souhaitez-vous donner à votre personnage: ",30000);
+            $nom= readline("");
+            popen('cls','w');
+            $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
+            apparaitreprogressivement("Bienvenue alors au donjon, ".$nom." fais attention beaucoup sont morts dedans !",30000);
+            sleep(2);
+        }
+        else if ($choixsauvegarde==3){
+            apparaitreprogressivement("Lancement d'une nouvelle partie sur la sauvegarde 3. \n",30000);
+            sleep(2);
+            popen('cls','w');
+            apparaitreprogressivement("Quel nom souhaitez-vous donner à votre personnage: ",30000);
+            $nom= readline("");
+            popen('cls','w');
+            $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
+            apparaitreprogressivement("Bienvenue alors au donjon, ".$nom." fais attention beaucoup sont morts dedans !",30000);
+            sleep(2);
+        }
+        else{
+            apparaitreprogressivement("Aucune sauvegrade prise retour au menu",30000);
+            sleep(2);
+            popen('cls','w');
+        }
     }
     else if($choix==3){
-        apparaitreprogressivement("Au revoir jeune aventurier, on espère vous revoir bientôt !\n",30000);
+        apparaitreprogressivement("Au revoir jeune aventurier, on espère te revoir bientôt !\n",30000);
         sleep(2);
         popen('cls','w');
         die();
