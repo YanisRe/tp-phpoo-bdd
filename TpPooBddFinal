@@ -1,0 +1,286 @@
+<?php
+
+class Personnage{
+    //On met en private pour raison de sécuriter
+    private $nom;
+    private $PV;
+    private $PA;
+    private $PD;
+    private $level=1;
+    private $experience=0;
+    private $competence;
+    private $arme;
+
+    public function __construct($n,$pv,$pa,$pd,$c,$a){
+        $this->nom = $n;
+        $this->PV= $pv;
+        $this->PA= $pa;
+        $this->PD= $pd;
+        $this->competence= $c;
+        $this->arme=$a;
+    }
+
+    public function getnom(){
+        return $this->nom;
+    }
+
+    public function getPV(){
+        return $this->PV;
+    }
+
+    public function getPA(){
+        return $this->PA;
+    }
+
+    public function getPD(){
+        return $this->PD;
+    }
+
+    public function getlevel(){
+        return $this->level;
+    }
+
+    public function getexperience(){
+        return $this->experience;
+    }
+
+    public function getcompetence(){
+        return $this->competence;
+    }
+    public function getarme(){
+        return $this->arme;
+    }
+}
+
+
+class Salle {
+    //cette class permet de créer les salles et de passer à la salle suivante
+    private $salle;
+    
+    private $sallesuivante;
+    
+    public function __construct($s, $sv){
+        $this->salle = $s;
+        $this->sallesuivante = $sv;
+    }
+    
+    
+}
+
+class SalleSpéciale extends Salle{
+    //On ajoute les différents attributs des salles spéciales
+    //Avec un monstre spécial qui sera invoqué si le joueur à la malchance de déclencher un piège à monstre
+    private $piege;
+    private $enigme;
+    private $marchand;
+    private $monstre;
+
+    private $degatspieges = 10;
+
+    private $choixmarchand;
+
+    private $itemRandom;
+    
+    public function __construct($s, $sv, $p, $e, $m, $mo){
+        parent::__construct($s, $sv);
+        $this->piege = $p;
+        $this->enigme = $e;
+        $this->marchand = $m;
+        $this->monstre = $mo;
+    }
+    
+    public function getpiege(){
+        return $this->piege;
+    }
+    
+    public function getenigme(){
+        return $this->enigme;
+    }
+    
+    public function getmarchand(){
+        return $this->marchand;
+    }
+    
+    public function getmonstre(){
+        return $this->monstre;
+    }
+    public function getsalle(){
+        return $this->salle;
+    }
+    
+    public function getsallesuivate(){
+        return $this->sallesuivante;
+    }
+    
+    public function EntréeEnSalle() {
+        echo"Vous entrez dans la salle.\n";
+        echo"Vous regardez autour de vous et vous voyez :\n";
+        $random = rand(1,100);
+        if ($random<=5){
+            $this->piege = true;
+        }
+        elseif ($random>5 && $random<=10){
+            $this->enigme = true;
+        }
+        elseif ($random>10 && $random<=15){
+            $this->marchand = true;
+        }
+        elseif ($random>15 && $random<=95){
+            $this->monstre = true;
+        }
+        else {
+            echo"rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n";
+        }
+    }
+
+    public function EnSalle(){
+        if ($this->monstre == true){
+            echo"Vous tombez face à un monstre dans la salle !\n";
+            echo"Un monstre spécial est invoqué !\n";
+            $this->monstre = true;
+        }
+        elseif ($this->piege == true){
+            echo"Vous tombez dans un piège !\n";
+            echo"Vous perdez ", $this->degatspieges, "points de vie !\n";
+            $this->piege = false;
+        }
+        elseif ($this->enigme == true){
+            echo"Vous tombez sur une énigme !\n";
+            echo"Vous devez résoudre l'énigme pour continuer votre chemin !\n";
+            $this->enigme = false;
+        }
+        elseif ($this->marchand == true){
+            echo"Vous tombez sur un marchand !\n";
+            $itemRandom = rand(1,3);
+            $choixmarchand = readline("Le marchand vend :\n1.".$itemRandom."\n2.".$itemRandom. "\n". "3.". $itemRandom. "\n");
+            if ($choixmarchand == 1){
+                echo"Vous achetez l'item 1 !\n";
+            }
+            elseif ($choixmarchand == 2){
+                echo"Vous achetez l'item 2 !\n";
+            }
+            elseif ($choixmarchand == 3){
+                echo"Vous achetez l'item 3 !\n";
+            }
+            else {
+                echo"Vous n'achetez rien !\n";
+            }
+            $this->marchand = false;
+        }
+        else {
+            echo"rien du tout, rien ne se passe. Vous pouvez continuer votre chemin.\n";
+        }
+
+    }
+
+
+}
+
+
+class monstre {
+    //On met en private pour raison de sécuriter
+    protected $nom;
+    protected $PV;
+    protected $PA;
+    protected $PD;
+    protected $XPgagner;
+    protected $drop;
+    
+    //On crée le constructeur
+    protected function __construct($n,$pv,$pa,$pd,$xp,$d){
+        $this->nom = $n;
+        $this->PV= $pv;
+        $this->PA= $pa;
+        $this->PD= $pd;
+        $this->XPgagner= $xp;
+        $this->drop=$d;
+    }
+
+}
+
+class MonstreSpécial extends Monstre {
+    //On crée les monstres spéciaux avec leurs attributs
+    private $arme;
+    private $competence;
+
+    public function __construct($n, $pv, $pa, $pd, $xp, $d, $a, $c){
+        parent::__construct($n, $pv, $pa, $pd, $xp, $d);
+        $this->arme=$a;
+        $this->competence=$c;
+    }
+    public function getnom(){
+        return $this->nom;
+    }
+
+    public function getPV(){
+        return $this->PV;
+    }
+    
+    public function getPA(){
+        return $this->PA;
+    }
+
+    public function getPD(){
+        return $this->PD;
+    }
+
+    public function getXPgagner(){
+        return $this->XPgagner;
+    }
+
+    public function getdrop(){
+        return $this->drop;
+    }
+}
+
+class Objects{
+    private $nom;
+    private $type;
+    private $statistique;
+
+    public function __construct($n,$t,$s){
+        $this->nom=$n;
+        $this->type=$t;
+        $this->statistique=$s;
+    }
+
+    public function getnom(){
+        return $this->nom;
+    }
+    public function gettype(){
+        return $this->type;
+    }
+    public function getstatistique(){
+        return $this->statistique;
+    }
+}
+//lancement du jeu
+while(true){
+    popen('cls','w');
+    echo("Bienvenue a toi jeune aventurier!");
+    sleep(3);
+    popen('cls','w');
+    echo("Que shouaitez vous faire:\n1-Continuer\n2-Nouvel partie\n3-Quitter\n");
+    $choix=readline("Choix: ");
+    popen('cls','w');
+    if($choix==1){
+        echo("Voici les sauvegarde: \n");
+        echo("Sauvegarde 1:\n");
+        echo("Sauvegarde 2:\n");
+        echo("Sauvegarde 3:\n");
+        sleep(3);
+    }
+    if($choix==2){
+        echo("Lancement d'une nouvel partie: \n");
+        sleep(3);
+    }
+    if($choix==3){
+        echo("Aurevoir jeune aventurier.: \n");
+        sleep(3);
+    }
+    else{
+        echo("Voici les sauvegarde: \n");
+        sleep(3);
+    }
+}
+?>
