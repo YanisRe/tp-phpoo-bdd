@@ -103,6 +103,12 @@ class Piege extends Salle{
         $this->degats=$d;
     }
 
+    public function Lancement($Personnage){
+        $defence=$Personnage["PD"];
+        $Personnage["PV"]= $Personnage["PV"]- round($this->degats/(round($defence/10)+1));
+        apparaitreprogressivement("Vous marchez sur un piège et vous subissez ".round($this->degats/round($defence/10)+1)." de dégats.\n",30000);
+    }
+
     public function gettype(){
         return $this->typeSalle;
     }
@@ -125,7 +131,6 @@ class Marchand extends Salle{
     public function __construct($lon,$lar,$o){
         parent::__construct("Marchand",$lon,$lar);
         $this->objet=$o;
-        $this->inventaire = array();
     }
 
     
@@ -143,54 +148,92 @@ class Marchand extends Salle{
         return $this->objet;
     }
 
-    public function listerInventaire(){
-        apparaitreprogressivement("Votre inventaire contient actuellement :\n",30000);
-        foreach($this->objet as $item){
-            apparaitreprogressivement($item->getnom()."\n",30000);
-        }
-    }
-    public function echange() {
+    public function Lancement($Personnage,$inventaire,$objets) {
         apparaitreprogressivement("Vous avez trouvé un marchand !\n", 30000);
         sleep(2);
-        popen('cls', 'w');
-        apparaitreprogressivement("Que souhaitez-vous faire ?\n", 30000);
-        apparaitreprogressivement("1-Acheter\n", 10000);
-        apparaitreprogressivement("2-Vendre\n", 10000);
-        apparaitreprogressivement("3-Ignorer\n", 10000);
-        apparaitreprogressivement("Choix:", 10000);
-        $choixMarchand = readline();
-        popen('cls', 'w');
-        if ($choixMarchand == 1) {
-            apparaitreprogressivement("Que souhaitez-vous acheter ?\n", 30000);
-
-            // Propose 3 objets aléatoires à acheter
-            $objetsAleatoires = $this->getObjetsAleatoires(3);
-            foreach ($objetsAleatoires as $index => $item) {
-                apparaitreprogressivement(($index + 1) . "-" . $item->getnom() . "\n", 10000);
+        while(true){
+            
+            popen('cls', 'w');
+            apparaitreprogressivement("Que souhaitez-vous faire ?\n", 30000);
+            apparaitreprogressivement("1-Acheter\n", 10000);
+            apparaitreprogressivement("2-Vendre\n", 10000);
+            apparaitreprogressivement("3-Continuer son chemin\n", 10000);
+            apparaitreprogressivement("Choix:", 10000);
+            $choixMarchand = readline();
+            popen('cls', 'w');
+            if ($choixMarchand == 1) {
+                apparaitreprogressivement("Que souhaitez-vous acheter ?\n", 30000);
+    
+                // Propose 3 objets aléatoires à acheter
+                $objetsAleatoires = $this->getObjetsAleatoires($objets,3);
+                foreach ($objetsAleatoires as $index => $item) {
+                    apparaitreprogressivement(($index + 1) . "-" . $item->getnom() . "\n", 10000);
+                }
+            } 
+            elseif ($choixMarchand == 2) {
+                apparaitreprogressivement( "Quel item souhaitez-vous vendre ?\n",30000);
+                listerInventaire($inventaire);
+                apparaitreprogressivement( "Choix:",30000);
+                $choixVente = readline();
+                foreach ($inventaire as $item) {
+                    if ($item["nom"] == $choixVente) {
+                        $requete = chargementBase()->prepare("DELETE FROM inventaire WHERE nom=?");
+                        $requete->execute([$choixVente]);
+                        apparaitreprogressivement("Vous avez vendu " . $choixVente . "\n", 30000);
+                        sleep(2);
+                        $argent = $Personnage["Argent"] + $item["prix"];
+                        $item["prix"] = $item["PA"] / 2;
+                        $requete = chargementBase()->prepare("UPDATE sauvegarde SET Argent=? WHERE ID=?");
+                        popen('cls', 'w');
+                        apparaitreprogressivement("Vous avez gagné " . $item["prix"] . " argent!\n", 30000);
+                        sleep(2);
+                    }
+                }
             }
-        } elseif ($choixMarchand == 2) {
-            echo "Quel item souhaitez-vous vendre ?\n";
-            $this->listerInventaire();
-            echo "Choix:";
-            $choixVente = readline();
+            elseif ($choixMarchand == 3) {
+                apparaitreprogressivement("Vous décidez de ne pas faire affaire avec le marchand.\n", 30000);
+                sleep(2);
+                popen('cls', 'w');
+                break;
+            }
+            else {
+                apparaitreprogressivement("Je n'ai pas compris votre demande.\n", 30000);
+                sleep(2);
+                popen('cls', 'w');
+            }
         }
     }
-    private function getObjetsAleatoires($nombre) {
+    public function acheterObjet($joueur, $objet) {
+        // Supposez que le prix de base soit de 10, et chaque point de dégât coûte 5
+        $prixBase = 10;
+        $prixTotal = $prixBase + ($objet->getDegats() * 5);
+    
+        // Code pour vérifier si le joueur a suffisamment d'argent pour acheter l'objet
+        if ($joueur->getArgent() >= $prixTotal) {
+            // Le joueur peut acheter l'objet
+            $joueur->retirerArgent($prixTotal); // Méthode à implémenter pour retirer l'argent du joueur
+            $joueur->ajouterObjet($objet); // Méthode à implémenter pour ajouter l'objet au joueur
+            echo "Objet acheté avec succès !";
+        } else {
+            // Le joueur n'a pas assez d'argent
+            echo "Vous n'avez pas assez d'argent pour acheter cet objet.";
+        }
+    }   
+    private function getObjetsAleatoires($Objets,$nombre) {
         $objetsAleatoires = array();
-        $objetDisponibles = $this->objet;
 
         // Mélanger les objets disponibles
-        shuffle($objetDisponibles);
+        shuffle($Objets);
 
         // Sélectionner les premiers $nombre objets
         for ($i = 0; $i < $nombre; $i++) {
-            $objetsAleatoires[] = $objetDisponibles[$i];
+            $objetsAleatoires[] = $Objets[$i];
         }
 
         return $objetsAleatoires;
     }
 
-    }
+}
 
 class Repos extends Salle{
     private $camps;
@@ -205,8 +248,8 @@ class Repos extends Salle{
     }
 
     //cette fonction permet de récupérer toute la vie du personnage
-    public function recupererVie($personnage) {
-        $personnage->setPV($personnage->getPVMax());
+    public function Lancement($personnage) {
+        $personnage["PV"]=$personnage["PVMAX"];
         apparaitreprogressivement("Vous vous reposez et récupérez toute votre vie.\n", 30000);
         sleep(1);
     }
@@ -222,7 +265,7 @@ Class SalleMonstre extends Salle{
 
     // Cette fonction permet de rencontrer un ennemi aléatoire
     public function Lancement($personnage,$PositionSalle) {
-        $randomEnemy = $this->enemies[random_int(0,min(round($PositionSalle/5)))]; // Sélection aléatoire d'un monstre à affronter
+        $randomEnemy = $this->enemies[random_int(0,min(round($PositionSalle/5),4))]; // Sélection aléatoire d'un monstre à affronter
         apparaitreprogressivement("Vous rencontrez un ennemi : " . $randomEnemy->getnom() . "\n", 30000);
         sleep(1);
 
@@ -233,12 +276,10 @@ Class SalleMonstre extends Salle{
 
 class Coffre extends Salle{
     private $objets;
-    private $chanceMimic;
 
-    public function __construct($t, $lon, $lar, $objets, $chanceMimic) {
+    public function __construct($t, $lon, $lar, $objets) {
         parent::__construct($t, $lon, $lar);
         $this->objets = $objets;
-        $this->chanceMimic = $chanceMimic;
     }
 
     // Methode pour ouvrir un coffre	
@@ -254,11 +295,15 @@ class Coffre extends Salle{
             sleep(1);
             
             // taux de chance de rencontrer un Mimic
-            if (random_int(1, 10) <= $this->chanceMimic) {
+            if (random_int(1, 10) == 1) {
                 $this->rencontrerMimic($personnage);
-            } else {
+            } 
+            else {
                 // Ca permet de récupérer un objet aléatoire dans la liste des objets
                 $nouvelObjet = $this->objets[array_rand($this->objets)];
+                
+                $requete = chargementBase()->prepare("UPDATE inventaire_personnage (id_personnage, nom_objet) VALUES (?, ?)");
+                $requete->execute([$personnage->getId(), $nouvelObjet->getnom()]);
 
                 // Ca permet de récupérer les statistiques de l'objet
                 apparaitreprogressivement("Vous avez trouvé un nouvel objet : " . $nouvelObjet->getnom() . "\n", 30000);
@@ -423,7 +468,7 @@ function PersonnageAttaque($Personnage, $monstre) {
     $degat=$Personnage["PA"];
     $defence=$monstre->getPD();
     $monstre->prendredegats(round($degat/(round($defence/10)+1)));
-    apparaitreprogressivement($defence."         Vous attaquez et vous infligez ".round($degat/(round($defence/10) +1))." de dégats.\n",30000);
+    apparaitreprogressivement("Vous attaquez et vous infligez ".round($degat/(round($defence/10) +1))." de dégats.\n",30000);
     sleep(1);
 }
 
@@ -567,7 +612,24 @@ function finSalle($Personnage){
             break;
         }
         else if($choix==2){
-            //Gestion inventaire
+            popen('cls','w');
+            listerinventaire($Personnage);
+            apparaitreprogressivement("Que souhaitez-vous faire :\n",30000);
+            apparaitreprogressivement("1-Jeter\n2-Quitter\nChoix:",10000);
+            while($choix!=1 || $choix!=2){
+                $choix=readline();
+            }
+            if($choix==1){
+                jeterItem($Personnage);
+            }
+            else if($choix==2){
+                break;
+            }
+            else{
+                apparaitreprogressivement("Je n'ai pas compris votre demande.\n",30000);
+                sleep(2);
+            }
+            
         }
         else if($choix==3){
             Sauvegarde($Personnage);
@@ -582,9 +644,38 @@ function finSalle($Personnage){
         }
     }
 }
+
+function jeterItem($inventaire){
+    apparaitreprogressivement("Quel item souhaitez-vous jeter ?\n",30000);
+    listerInventaire($inventaire);
+    apparaitreprogressivement("Choix:",30000);
+    $choixJeter=readline();
+    foreach($inventaire as $item){
+        if($item["nom"]==$choixJeter){
+            $requete = chargementBase()->prepare("DELETE FROM inventaire WHERE nom=?");
+            $requete->execute([$choixJeter]);
+            apparaitreprogressivement("Vous avez jeté ".$choixJeter."\n",30000);
+            sleep(2);
+            popen('cls','w');
+            break;
+        }
+    }
+}
+
+function listerInventaire($inventaire){
+    apparaitreprogressivement("Votre inventaire contient actuellement :\n",30000);
+    foreach($inventaire as $item){
+        apparaitreprogressivement($item["nom"]."\n",30000);
+    }
+}
+//ces lignes de codes permettent de créer les objets, les monstres et les salles
+$Objets=[new Objects("épée en fer", "arme", ["dégats"=>6]), new Objects("masse d'arme", "arme", ["dégats"=>9]), new Objects("lance d'os", "arme", ["dégats"=>12]), new Objects("espadon", "arme", ["dégats"=>18]), new Objects("baton", "arme", ["dégats"=>900]), new Objects("halbarde", "arme", ["dégats"=>20]), new Objects("hache à deux mains", "arme", ["dégats"=>25]), new Objects("lame divin des dieux", "arme", ["dégats"=>1]), new Objects("faussoyeur des mondes", "arme", ["dégats"=>50]), new Objects("trinitées", "arme", ["dégats"=>40]), new Objects("brise coque", "arme", ["dégats"=>60]), new Objects("dague du roi déchue", "arme", ["dégats"=>55])];
 $Ennemies=[new monstre("squelette", 90, 15, 5, 20,[]), new monstre("zombie", 120, 15, 8, 25,[]), new monstre("gobelin slayer", 70, 30, 10, 50,[]), new monstre("orc", 160, 50, 20, 100,[]), new monstre("démon", 200, 60, 30, 300,[])];
 $Enemiesspeciaux=[new MonstreSpécial("Mimic",250,25,50,2500,["épée en obsidienne à deux mains",50,20],"langue",["Glouton",1.5]), new MonstreSpécial("Dragon",500,100,100,5000,["Espadon des dieux",90,18],"Lance-flammes",["Souffle de feu",2]), new MonstreSpécial("Golem",1000,200,200,10000,["Marteau de guerre",150,30],"Poing de pierre",["Poing de pierre",3])];
-$SallesMonstre= [new SalleMonstre("Monstre",20,12,$Enemies),new SalleMonstre("Monstre",16,18,$Ennemies)];
+$SallesMonstre= [new SalleMonstre("Monstre",20,12,$Ennemies),new SalleMonstre("Monstre",16,18,$Ennemies)];
+$SalleCoffre= [new Coffre("Coffre",26,12,$Objets),new Coffre("Coffre",22,11,$Objets)];
+$SallesMarchand= [new Marchand(16,22,$Objets), new Marchand(17,20,$Objets)];
+$SallesPiege= [new Piege(20,12,15),new Piege(13,9,20)];
 //lancement du jeu
 popen('cls','w');
 apparaitreprogressivement("Bienvenue à toi jeune aventurier !", 30000);
@@ -641,20 +732,20 @@ while(true){
                         finSalle($Personnage);
                     }
                     else if($typeSalle==16){
-                        $PositionSalle=$SallesMarchant[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement();
+                        $PositionSalle=$SallesMarchand[random_int(0,count($SallesMonstre)-1)];
+                        $PositionSalle->Lancement($Personnage,$InvtairePerso);
                     }
                     else if($typeSalle==17){
                         $PositionSalle=$SallesPiege[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement();
+                        $PositionSalle->Lancement($Personnage);
                     }
                     else if($typeSalle==18){
                         $PositionSalle=$SalleCoffre[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement();
+                        $PositionSalle->Lancement($InvtairePerso);
                     }
                     else if($typeSalle>18){
                         $PositionSalle=$SallesRepos=[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement();
+                        $PositionSalle->Lancement($Personnage);
                     }
                 }
             }
@@ -691,8 +782,9 @@ while(true){
             $Personnage= new Personnage($nom,100,10,5,[],["nom"=>"épée rouillée à une main","dégats"=>3]);
             $requete =chargementBase()->prepare("UPDATE sauvegarde SET nom =?, PV =?, PVMAX =?, PA =?, PD =?, Niveau =?, Exp =?, Salle =?, Argent= ? WHERE ID= ?");
             $requete->execute([$Personnage->getnom(),$Personnage->getPV(),$Personnage->getPVMax(),$Personnage->getPA(),$Personnage->getPD(),$Personnage->getlevel(), $Personnage->getexperience(),1,100,$choixsauvegarde]);
+            $requete= chargementBase()->prepare("UPDATE arme SET nom=? Degats=? where IDSauvegarde=?");
+            $requete->execute([$Personnage->getarme()["nom"],]);
             //Le recharge.
-            sleep(2);
             $requete = chargementBase()->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
             $requete->execute([$choixsauvegarde]);
             $Personnage= $requete->fetch();
