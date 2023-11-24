@@ -118,13 +118,17 @@ class Piege extends Salle{
 }
 class Marchand extends Salle{
     private $objet;
+    private $inventaire;
     private $marchandtrouver=false;
 
 
     public function __construct($lon,$lar,$o){
         parent::__construct("Marchand",$lon,$lar);
         $this->objet=$o;
+        $this->inventaire = array();
     }
+
+    
 
     public function gettype(){
         return $this->typeSalle;
@@ -140,36 +144,53 @@ class Marchand extends Salle{
     }
 
     public function listerInventaire(){
-        apparaitreprogressivement("Voici votre inventaire:\n",30000);
+        apparaitreprogressivement("Votre inventaire contient actuellement :\n",30000);
         foreach($this->objet as $item){
             apparaitreprogressivement($item->getnom()."\n",30000);
         }
     }
-    public function echange(){
-        apparaitreprogressivement("Vous avez trouvé un marchand !\n",30000);
+    public function echange() {
+        apparaitreprogressivement("Vous avez trouvé un marchand !\n", 30000);
         sleep(2);
-        popen('cls','w');
-        apparaitreprogressivement("Que souhaitez-vous faire ?\n",30000);
-        apparaitreprogressivement("1-Acheter\n",10000);
-        apparaitreprogressivement("2-Vendre\n",10000);
-        apparaitreprogressivement("3-Ignorer\n",10000);
-        apparaitreprogressivement("Choix:",10000);
-        $choixMarchand=readline();
-        popen('cls','w');
-        if($choixMarchand==1){
-            apparaitreprogressivement("Que souhaitez-vous acheter ?\n",30000);
-            apparaitreprogressivement("1-".$itemrandom."\n",10000);
-            apparaitreprogressivement("2-".$itemrandom."\n",10000);
-            apparaitreprogressivement("3-".$itemrandom."\n",10000);
-        }
-        elseif($choixMarchand==2){
-            echo"Quel item souhaitez-vous vendre ?\n";
-                
-            echo"Choix:";
-            $choixVente=readline();
+        popen('cls', 'w');
+        apparaitreprogressivement("Que souhaitez-vous faire ?\n", 30000);
+        apparaitreprogressivement("1-Acheter\n", 10000);
+        apparaitreprogressivement("2-Vendre\n", 10000);
+        apparaitreprogressivement("3-Ignorer\n", 10000);
+        apparaitreprogressivement("Choix:", 10000);
+        $choixMarchand = readline();
+        popen('cls', 'w');
+        if ($choixMarchand == 1) {
+            apparaitreprogressivement("Que souhaitez-vous acheter ?\n", 30000);
+
+            // Propose 3 objets aléatoires à acheter
+            $objetsAleatoires = $this->getObjetsAleatoires(3);
+            foreach ($objetsAleatoires as $index => $item) {
+                apparaitreprogressivement(($index + 1) . "-" . $item->getnom() . "\n", 10000);
+            }
+        } elseif ($choixMarchand == 2) {
+            echo "Quel item souhaitez-vous vendre ?\n";
+            $this->listerInventaire();
+            echo "Choix:";
+            $choixVente = readline();
         }
     }
-}
+    private function getObjetsAleatoires($nombre) {
+        $objetsAleatoires = array();
+        $objetDisponibles = $this->objet;
+
+        // Mélanger les objets disponibles
+        shuffle($objetDisponibles);
+
+        // Sélectionner les premiers $nombre objets
+        for ($i = 0; $i < $nombre; $i++) {
+            $objetsAleatoires[] = $objetDisponibles[$i];
+        }
+
+        return $objetsAleatoires;
+    }
+
+    }
 
 class Repos extends Salle{
     private $camps;
@@ -200,8 +221,8 @@ Class SalleMonstre extends Salle{
     }
 
     // Cette fonction permet de rencontrer un ennemi aléatoire
-    public function rencontrerEnnemi($personnage,$PositionSalle) {
-        $randomEnemy = $this->enemies[random_int(0,round($PositionSalle/5))+1]; // Sélection aléatoire d'un monstre à affronter
+    public function Lancement($personnage,$PositionSalle) {
+        $randomEnemy = $this->enemies[random_int(0,min(round($PositionSalle/5)))]; // Sélection aléatoire d'un monstre à affronter
         apparaitreprogressivement("Vous rencontrez un ennemi : " . $randomEnemy->getnom() . "\n", 30000);
         sleep(1);
 
@@ -243,9 +264,7 @@ class Coffre extends Salle{
                 apparaitreprogressivement("Vous avez trouvé un nouvel objet : " . $nouvelObjet->getnom() . "\n", 30000);
                 sleep(1);
 
-                // Add the item to the player's inventory or perform other actions
-                // For example, you might want to add a method in the Personnage class to handle inventory.
-                // $personnage->ajouterObjet($nouvelObjet);
+                
             }
         } else {
             apparaitreprogressivement("Vous décidez de ne pas ouvrir le coffre.\n", 30000);
@@ -537,8 +556,35 @@ function Sauvegarde($Personnage){
     $requete = chargementBase()->prepare("UPDATE sauvegarde SET PV =?, PVMAX =?, PA =?, PD =?, Niveau =?, Exp =?, Salle =?, Argent= ? WHERE ID= ?");
     $requete->execute([$Personnage["PV"],$Personnage["PVMAX"],$Personnage["PA"],$Personnage["PD"],$Personnage->getlevel(), $Personnage->getexperience(),$Personnage->getSalle(),$Personnage["Argent"],$Personnage["ID"]]);
 }
+
+function finSalle($Personnage){
+    while(true){
+        popen('cls','w');
+        apparaitreprogressivement("Que shouaitez vous faire :\n",30000);
+        apparaitreprogressivement("1-Continuer\n2-Gerer Inventaire\n3-Sauvegarder\n4-Quitter\nChoix:",10000);
+        $choix=readline();
+        if($choix==1){
+            break;
+        }
+        else if($choix==2){
+            //Gestion inventaire
+        }
+        else if($choix==3){
+            Sauvegarde($Personnage);
+            apparaitreprogressivement("Sauvegarde effectué.",30000);
+            sleep(2);
+        }
+        else if($choix==4){
+            apparaitreprogressivement("Au revoir jeune aventurier, on espère te revoir bientôt !\n",30000);
+            sleep(2);
+            popen('cls','w');
+            die();
+        }
+    }
+}
 $Ennemies=[new monstre("squelette", 90, 15, 5, 20,[]), new monstre("zombie", 120, 15, 8, 25,[]), new monstre("gobelin slayer", 70, 30, 10, 50,[]), new monstre("orc", 160, 50, 20, 100,[]), new monstre("démon", 200, 60, 30, 300,[])];
 $Enemiesspeciaux=[new MonstreSpécial("Mimic",250,25,50,2500,["épée en obsidienne à deux mains",50,20],"langue",["Glouton",1.5]), new MonstreSpécial("Dragon",500,100,100,5000,["Espadon des dieux",90,18],"Lance-flammes",["Souffle de feu",2]), new MonstreSpécial("Golem",1000,200,200,10000,["Marteau de guerre",150,30],"Poing de pierre",["Poing de pierre",3])];
+$SallesMonstre= [new SalleMonstre("Monstre",20,12,$Enemies),new SalleMonstre("Monstre",16,18,$Ennemies)];
 //lancement du jeu
 popen('cls','w');
 apparaitreprogressivement("Bienvenue à toi jeune aventurier !", 30000);
@@ -572,6 +618,9 @@ while(true){
             $requete = chargementBase()->prepare("SELECT * FROM Arme WHERE IDSauvegarde=?");
             $requete->execute([$choix]);
             $arme= $requete->fetch();
+            $requete = chargementBase()->prepare("SELECT * FROM inventaire WHERE IDSauvegarde=?");
+            $requete->execute([$choix]);
+            $InvtairePerso=$requete->fetchAll();
             while (true){
                 if($Personnage["nom"]==NULL){
                     //on vérifie si la sauvegarde est vide
@@ -587,19 +636,20 @@ while(true){
                     //Choisis une type de salle aléatoirement.
                     $typeSalle=random_int(1,20);
                     if($typeSalle<=15){
-                        $PositionSalle=$SallesMonstre=[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement($Ennemies);
+                        $PositionSalle=$SallesMonstre[random_int(0,count($SallesMonstre)-1)];
+                        $PositionSalle->Lancement($Personnage,$Personnage["Salle"]);
+                        finSalle($Personnage);
                     }
                     else if($typeSalle==16){
-                        $PositionSalle=$SallesMarchant=[random_int(0,count($SallesMonstre)-1)];
+                        $PositionSalle=$SallesMarchant[random_int(0,count($SallesMonstre)-1)];
                         $PositionSalle->Lancement();
                     }
                     else if($typeSalle==17){
-                        $PositionSalle=$SallesPiege=[random_int(0,count($SallesMonstre)-1)];
+                        $PositionSalle=$SallesPiege[random_int(0,count($SallesMonstre)-1)];
                         $PositionSalle->Lancement();
                     }
                     else if($typeSalle==18){
-                        $PositionSalle=$SalleCoffre=[random_int(0,count($SallesMonstre)-1)];
+                        $PositionSalle=$SalleCoffre[random_int(0,count($SallesMonstre)-1)];
                         $PositionSalle->Lancement();
                     }
                     else if($typeSalle>18){
