@@ -1,0 +1,118 @@
+-- MySQL dump 10.13  Distrib 8.0.19, for Win64 (x86_64)
+--
+-- Host: localhost    Database: jeuxtp
+-- ------------------------------------------------------
+-- Server version	11.1.2-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `arme`
+--
+
+DROP TABLE IF EXISTS `arme`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `arme` (
+  `IDSauvegarde` int(1) NOT NULL,
+  `nom` char(100) NOT NULL,
+  `Degats` int(10) NOT NULL,
+  PRIMARY KEY (`IDSauvegarde`),
+  CONSTRAINT `Arme_cle_Sauvegarde` FOREIGN KEY (`IDSauvegarde`) REFERENCES `sauvegarde` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `arme`
+--
+
+LOCK TABLES `arme` WRITE;
+/*!40000 ALTER TABLE `arme` DISABLE KEYS */;
+INSERT INTO `arme` VALUES (1,'épée',2),(2,'épée',2),(3,'épée',2);
+/*!40000 ALTER TABLE `arme` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inventaire`
+--
+
+DROP TABLE IF EXISTS `inventaire`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `inventaire` (
+  `IDItem` int(1) NOT NULL,
+  `IDSauvegarde` int(1) NOT NULL,
+  `nom` char(100) DEFAULT NULL,
+  `Effet1` char(100) DEFAULT NULL,
+  `Effet2` char(100) DEFAULT NULL,
+  `Equipe` tinyint(1) NOT NULL,
+  PRIMARY KEY (`IDItem`),
+  KEY `Inventaire_cle_sauvegarde` (`IDSauvegarde`),
+  CONSTRAINT `Inventaire_cle_sauvegarde` FOREIGN KEY (`IDSauvegarde`) REFERENCES `sauvegarde` (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventaire`
+--
+
+LOCK TABLES `inventaire` WRITE;
+/*!40000 ALTER TABLE `inventaire` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inventaire` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sauvegarde`
+--
+
+DROP TABLE IF EXISTS `sauvegarde`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sauvegarde` (
+  `ID` int(1) NOT NULL,
+  `nom` char(10) DEFAULT NULL,
+  `PV` int(10) NOT NULL,
+  `PVMAX` int(10) NOT NULL,
+  `PA` int(10) NOT NULL,
+  `PD` int(10) NOT NULL,
+  `Niveau` int(10) NOT NULL,
+  `Exp` int(10) NOT NULL,
+  `Salle` int(10) NOT NULL,
+  `Argent` int(10) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sauvegarde`
+--
+
+LOCK TABLES `sauvegarde` WRITE;
+/*!40000 ALTER TABLE `sauvegarde` DISABLE KEYS */;
+INSERT INTO `sauvegarde` VALUES (1,'Maxance',100,100,10,5,1,0,1,100),(2,'Radu',100,100,10,5,1,0,1,100),(3,NULL,0,0,0,0,0,0,0,0);
+/*!40000 ALTER TABLE `sauvegarde` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'jeuxtp'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2023-11-24 16:43:38
