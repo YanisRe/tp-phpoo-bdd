@@ -429,7 +429,7 @@ class MonstreSpécial extends Monstre {
     }
 }
 
-class Objects{
+class Objets{
     private $nom;
     private $type;
     private $statistique;
@@ -531,9 +531,14 @@ function combat($Personnage, $Ennemie){
     
         if ($Personnage["PV"] <= 0) {
             apparaitreprogressivement("Vous avez été vaincu !\n", 30000);
-            break;
+            die();
         } elseif ($Ennemie->getPV() <= 0) {
             apparaitreprogressivement("Vous avez vaincu le monstre !\n", 30000);
+            $Personnage["Exp"]= $Personnage["Exp"] + $Ennemie->getXPgagner();
+            if ($Personnage["Exp"] >= $Personnage["Niveau"]*100){
+                Monterniveau($Personnage);
+            }
+            $Personnage["Argent"]= $Personnage["Argent"] + 50;
             break;
         }
         if ($sedefend){
@@ -557,7 +562,7 @@ function ApparitionSalle($Salle,$numero){
     }
     apparaitreprogressivement(str_repeat("=",$long)."\n",5000);
 }
-function LevelUp($Personnage){
+function Monterniveau($Personnage){
     apparaitreprogressivement("Vous montez de niveau, vous pouvez donc mettre 3 points de stats.\n",30000);
     $Personnage["Exp"]= $Personnage["Exp"] - $Personnage["Niveau"]*100;
     $Personnage["Niveau"]= $Personnage["Niveau"]+1;
@@ -669,7 +674,7 @@ function listerInventaire($inventaire){
     }
 }
 //ces lignes de codes permettent de créer les objets, les monstres et les salles
-$Objets=[new Objects("épée en fer", "arme", ["dégats"=>6]), new Objects("masse d'arme", "arme", ["dégats"=>9]), new Objects("lance d'os", "arme", ["dégats"=>12]), new Objects("espadon", "arme", ["dégats"=>18]), new Objects("baton", "arme", ["dégats"=>900]), new Objects("halbarde", "arme", ["dégats"=>20]), new Objects("hache à deux mains", "arme", ["dégats"=>25]), new Objects("lame divin des dieux", "arme", ["dégats"=>1]), new Objects("faussoyeur des mondes", "arme", ["dégats"=>50]), new Objects("trinitées", "arme", ["dégats"=>40]), new Objects("brise coque", "arme", ["dégats"=>60]), new Objects("dague du roi déchue", "arme", ["dégats"=>55])];
+$Objets=[new Objets("épée en fer", "arme", ["dégats"=>6]), new Objets("masse d'arme", "arme", ["dégats"=>9]), new Objets("lance d'os", "arme", ["dégats"=>12]), new Objets("espadon", "arme", ["dégats"=>18]), new Objets("baton", "arme", ["dégats"=>900]), new Objets("halbarde", "arme", ["dégats"=>20]), new Objets("hache à deux mains", "arme", ["dégats"=>25]), new Objets("lame divin des dieux", "arme", ["dégats"=>1]), new Objets("faussoyeur des mondes", "arme", ["dégats"=>50]), new Objets("trinitées", "arme", ["dégats"=>40]), new Objets("brise coque", "arme", ["dégats"=>60]), new Objets("dague du roi déchue", "arme", ["dégats"=>55])];
 $Ennemies=[new monstre("squelette", 90, 15, 5, 20,[]), new monstre("zombie", 120, 15, 8, 25,[]), new monstre("gobelin slayer", 70, 30, 10, 50,[]), new monstre("orc", 160, 50, 20, 100,[]), new monstre("démon", 200, 60, 30, 300,[])];
 $Enemiesspeciaux=[new MonstreSpécial("Mimic",250,25,50,2500,["épée en obsidienne à deux mains",50,20],"langue",["Glouton",1.5]), new MonstreSpécial("Dragon",500,100,100,5000,["Espadon des dieux",90,18],"Lance-flammes",["Souffle de feu",2]), new MonstreSpécial("Golem",1000,200,200,10000,["Marteau de guerre",150,30],"Poing de pierre",["Poing de pierre",3])];
 $SallesMonstre= [new SalleMonstre("Monstre",20,12,$Ennemies),new SalleMonstre("Monstre",16,18,$Ennemies)];
@@ -733,7 +738,7 @@ while(true){
                     }
                     else if($typeSalle==16){
                         $PositionSalle=$SallesMarchand[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement($Personnage,$InvtairePerso);
+                        $PositionSalle->Lancement($Personnage,$InvtairePerso,$objects);
                     }
                     else if($typeSalle==17){
                         $PositionSalle=$SallesPiege[random_int(0,count($SallesMonstre)-1)];
@@ -741,7 +746,7 @@ while(true){
                     }
                     else if($typeSalle==18){
                         $PositionSalle=$SalleCoffre[random_int(0,count($SallesMonstre)-1)];
-                        $PositionSalle->Lancement($InvtairePerso);
+                        $PositionSalle->Lancement($Personnage);
                     }
                     else if($typeSalle>18){
                         $PositionSalle=$SallesRepos=[random_int(0,count($SallesMonstre)-1)];
@@ -783,7 +788,7 @@ while(true){
             $requete =chargementBase()->prepare("UPDATE sauvegarde SET nom =?, PV =?, PVMAX =?, PA =?, PD =?, Niveau =?, Exp =?, Salle =?, Argent= ? WHERE ID= ?");
             $requete->execute([$Personnage->getnom(),$Personnage->getPV(),$Personnage->getPVMax(),$Personnage->getPA(),$Personnage->getPD(),$Personnage->getlevel(), $Personnage->getexperience(),1,100,$choixsauvegarde]);
             $requete= chargementBase()->prepare("UPDATE arme SET nom=? Degats=? where IDSauvegarde=?");
-            $requete->execute([$Personnage->getarme()["nom"],]);
+            $requete->execute([$Personnage->getarme()["nom"],[$Personnage->getarme()["dégats"],$choixsauvegarde]]);
             //Le recharge.
             $requete = chargementBase()->prepare("SELECT * FROM Sauvegarde WHERE ID=?");
             $requete->execute([$choixsauvegarde]);
